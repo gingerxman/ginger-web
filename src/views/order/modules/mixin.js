@@ -45,6 +45,18 @@ const statusMap = {
       enable_in_list: false
     }]
   },
+  'finished': {
+    step: 4,
+    text: '交易完成',
+    longText: '交易完成',
+    help: '货款已结算到店铺余额账户，请注意查收。',
+    operations: [{
+      type: 'link',
+      code: 'remark_order',
+      name: '备注',
+      enable_in_list: false
+    }]
+  },
   'canceled': {
     step: 4,
     text: '交易关闭',

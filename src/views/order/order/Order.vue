@@ -25,7 +25,7 @@
         </a-step>
         <a-step title="商家发货" :description="getDateTime('ship_order')">
         </a-step>
-        <a-step title="交易完成">
+        <a-step title="交易完成" :description="getDateTime('finish_order')">
         </a-step>
       </a-steps>
     </a-row>
