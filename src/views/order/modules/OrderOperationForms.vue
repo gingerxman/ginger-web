@@ -34,7 +34,7 @@ export default {
       this.order = order
       const opCode = op.code
       console.warn(opCode + ' ' + order.bid)
-      if (opCode === 'remark') {
+      if (opCode === 'remark_order') {
         this.$refs.remarkOrderModal.show(order)
       } else if (opCode === 'cancel_order') {
         this.$refs.cancelOrderModal.show(order)

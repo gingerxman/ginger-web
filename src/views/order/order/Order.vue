@@ -3,27 +3,27 @@
   <page-view class="x-page-order" v-if="invoice" :title="title">
     <a-row slot="headerContent" class="x-header">
       <div class="x-status">
-        <div class="x-status-text">{{ statusInfo.text }}</div>
+        <div class="x-status-text">{{ statusInfo.longText }}</div>
         <div class="x-status-help">
-          {{ orderHelp }}
+          {{ invoice.status == 'canceled' ? invoice.cancel_reason : statusInfo.help }}
         </div>
         <div class="x-status-ops" v-if="statusInfo.operations">
           <a-button
             v-for="op in statusInfo.operations"
             :key="op.code"
-            type="primary"
+            :type="op.type"
             @click="$refs.operateOrderForms.operateOrder({order:invoice, op:op})"
           >{{ op.name }}</a-button>
         </div>
       </div>
     </a-row>
-    <a-row slot="extra" class="x-progress">
-      <a-steps direction="horizontal" :current="curStep">
+    <a-row v-if="invoice.status != 'canceled'" slot="extra" class="x-progress">
+      <a-steps direction="horizontal" :current="statusInfo.step">
         <a-step title="买家下单" :description="invoice.created_at">
         </a-step>
-        <a-step title="买家付款">
+        <a-step title="买家付款" :description="getDateTime('pay_order')">
         </a-step>
-        <a-step title="商家发货">
+        <a-step title="商家发货" :description="getDateTime('ship_order')">
         </a-step>
         <a-step title="交易完成">
         </a-step>
@@ -34,21 +34,27 @@
       <description-list title="收货人信息">
         <description-item term="收货人">{{ shipInfo.name }}</description-item>
         <description-item term="联系电话">{{ shipInfo.phone }}</description-item>
-        <description-item term="收货地址">{{ shipInfo.address }}</description-item>
+        <description-item term="收货地址">{{ shipInfo.area_name }} {{ shipInfo.address }}</description-item>
       </description-list>
       
       <description-list title="配送信息">
         <description-item term="配送方式">快递</description-item>
       </description-list>
 
-      <description-list title="付款信息">
+      <description-list title="付款信息" v-if="invoice.status == 'wait_pay'">
+        <description-item term="付款状态">待付款</description-item>
+      </description-list>
+      <description-list title="付款信息" v-else-if="invoice.status == 'canceled'">
+        <description-item term="应付金额">{{ formatMoney(invoice.final_money) }}</description-item>
+      </description-list>
+      <description-list title="付款信息" v-else>
         <description-item term="实付金额">{{ formatMoney(invoice.final_money) }}</description-item>
         <description-item term="付款方式">微信支付</description-item>
         <description-item term="付款时间">{{ invoice.payment_time }}</description-item>
       </description-list>
 
       <description-list title="买家信息">
-        <description-item term="买家留言">{{ invoice.message }}</description-item>
+        <description-item term="买家留言">{{ invoice.message ? invoice.message : '-' }}</description-item>
       </description-list>
     </a-card>
 
@@ -89,7 +95,7 @@
         <div>
           <div class="x-i-item">
             <label>商品总价: </label>
-            <div>￥ 0.01</div>
+            <div>￥ {{ productsPrice }}</div>
           </div>
           <div class="x-i-item">
             <label>运费: </label>
@@ -105,7 +111,7 @@
           </div>
           <div class="x-i-item x-i-finalMoney">
             <label>实收金额:</label>
-            <div>￥ {{ accumulatedMoney }}</div>
+            <div>￥ {{ formatMoney(order.final_money) }}</div>
           </div>
         </div>
       </div>
@@ -121,35 +127,11 @@ import { mixinDevice } from '@/utils/mixin'
 import { OrderStatusInfo } from '../modules/mixin'
 import { PageView } from '@/layouts'
 import DescriptionList from '@/components/DescriptionList'
-import { OrderService } from '@/api/service'
+import { OrderService, product_service } from '@/api/service'
 import { formatPrice } from '@/utils/util'
 import OrderOperationForms from '../modules/OrderOperationForms'
 
 const DescriptionItem = DescriptionList.Item
-
-const statusMap = {
-  'wait_pay': {
-    step: 1,
-    text: '等待买家付款'
-  },
-  'wait_ship': {
-    step: 2,
-    text: '等待商家发货',
-    help: '买家已付款，请尽快发货，否则买家有可能申请退款。',
-    operations: [{
-      code: 'ship_order',
-      name: '发货'
-    }]
-  },
-  'shipped': {
-    step: 3,
-    text: '商家已发货'
-  },
-  'canceled': {
-    step: 4,
-    text: '交易关闭'
-  }
-}
 
 export default {
   name: 'Advanced',
@@ -165,6 +147,7 @@ export default {
     return {
       bid: bid,
       invoice: null,
+      order: null,
       
       columns: [{
         title: '商品',
@@ -210,42 +193,6 @@ export default {
       return '订单号: ' + this.bid
     },
 
-    orderStatus () {
-      const statusInfo = statusMap[this.invoice.status]
-      if (statusInfo) {
-        return statusInfo.text
-      } else {
-        return '无效订单'
-      }
-    },
-
-    orderHelp () {
-      const statusInfo = statusMap[this.invoice.status]
-      if (statusInfo) {
-        return statusInfo.help
-      } else {
-        return ''
-      }
-    },
-
-    orderOperations () {
-      const statusInfo = statusMap[this.invoice.status]
-      if (statusInfo) {
-        return statusInfo.operations
-      } else {
-        return []
-      }
-    },
-
-    curStep () {
-      const statusInfo = statusMap[this.invoice.status]
-      if (statusInfo) {
-        return statusInfo.step
-      } else {
-        return 1
-      }
-    },
-
     shipInfo () {
       if (this.invoice) {
         return this.invoice.ship_info
@@ -260,12 +207,22 @@ export default {
       } else {
         return []
       }
+    },
+
+    productsPrice () {
+      if (this.invoice) {
+        const price = this.invoice.products.reduce((sum, product) => {
+          return sum + product.price * product.count
+        }, 0)
+
+        return this.formatMoney(price)
+      }
     }
   },
 
   async mounted () {
-    const order = await OrderService.getOrder(this.bid)
-    this.invoice = order.invoices[0]
+    this.order = await OrderService.getOrder(this.bid)
+    this.invoice = this.order.invoices[0]
   },
 
   methods: {
@@ -275,6 +232,22 @@ export default {
 
     accumulatedMoney (product) {
       return formatPrice(product.price * product.count)
+    },
+
+    getDateTime (action) {
+      if (!this.order) {
+        return ''
+      }
+
+      const operationLog = this.order.operation_logs.find(log => {
+        console.log(JSON.stringify(log))
+        return log.action === action
+      })
+      if (operationLog) {
+        return operationLog.created_at
+      } else {
+        return ''
+      }
     },
 
     async onFinishOperateOrder (data) {
@@ -456,6 +429,12 @@ export default {
     }
     .status-list {
       text-align: left;
+    }
+  }
+
+  .x-status-ops {
+    .ant-btn {
+      margin-right: 10px;
     }
   }
 </style>

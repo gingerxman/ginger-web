@@ -10,8 +10,8 @@
           <span></span>
         </div>
         <div class="operation-btn">
-          <a target="_blank" href="/v4/trade/order/detail?orderNo=E20191113114954066300005">查看详情</a>&nbsp;-&nbsp;
-          <div class="remark-content-wrap"><a href="javascript:;" class="remark-content-wrap__link" @click="onClickOperation({code:'remark'})">备注</a></div>
+          <a target="_blank" :href="orderUrl">查看详情</a>&nbsp;-&nbsp;
+          <div class="remark-content-wrap"><a href="javascript:;" class="remark-content-wrap__link" @click="onClickOperation({code:'remark_order'})">备注</a></div>
         </div>
       </div>
     </div>
@@ -51,7 +51,9 @@
           <td class="pay-price-cell" rowspan="1">
             <div>
               <span>{{ formatPrice(order.final_money) }}</span>
-              <div v-if="order.status === 'wait_pay'"><a>修改价格</a></div>
+              <div v-if="order.status === 'wait_pay'">
+                <a-button type="link" @click="onClickOperation({code:'modify_order_money'})">修改价格</a-button>
+              </div>
             </div>
           </td>
           <td rowspan="1" class="state-cell">
@@ -68,7 +70,7 @@
                   v-for="op in statusInfo.operations"
                   :key="op.code"
                 >
-                  <a-button type="link" @click="onClickOperation(op)">{{ op.name }}</a-button>
+                  <a-button v-if="op.enable_in_list" :type="op.type" @click="onClickOperation(op)">{{ op.name }}</a-button>
                 </div>
               </div>
             </div>
@@ -100,7 +102,9 @@ export default {
   mixins: [OrderStatusInfo],
 
   computed: {
-    
+    orderUrl () {
+      return `/order/order?bid=${this.order.bid}`
+    }
   },
 
   data () {
