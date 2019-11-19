@@ -15,6 +15,9 @@
             @click="$refs.operateOrderForms.operateOrder({order:invoice, op:op})"
           >{{ op.name }}</a-button>
         </div>
+        <div class="x-remark">
+          商家备注: {{ invoice.remark }}
+        </div>
       </div>
     </a-row>
     <a-row v-if="invoice.status != 'canceled'" slot="extra" class="x-progress">
@@ -30,32 +33,59 @@
       </a-steps>
     </a-row>
 
-    <a-card class="x-logistics" :bordered="false" title="物流信息" v-if="shipInfo">
-      <description-list title="收货人信息">
-        <description-item term="收货人">{{ shipInfo.name }}</description-item>
-        <description-item term="联系电话">{{ shipInfo.phone }}</description-item>
-        <description-item term="收货地址">{{ shipInfo.area_name }} {{ shipInfo.address }}</description-item>
-      </description-list>
-      
-      <description-list title="配送信息">
-        <description-item term="配送方式">快递</description-item>
-      </description-list>
+    <a-card :bordered="false" title="物流信息" v-if="shipInfo">
+      <div class="x-express" v-if="isShipped">
+        <description-list title="包裹">
+          <description-item term="发货方式">快递</description-item>
+          <description-item term="发货人">{{ getOperationLog('ship_order').operator }}</description-item>
+          <description-item term="收货时间">{{ getDateTime('ship_order') }}</description-item>
+          <description-item term="" class="x-i-products">
+            <div
+              v-for="product in invoiceProducts"
+              :key="product.id"
+              class="x-i-product"
+            >
+              <div class="x-i-img">
+                <img :src="product.thumbnail" />
+              </div>
+              <div class="x-i-info">
+                <div class="x-i-title">{{ product.name }} x{{ product.count }}</div>
+              </div>
+            </div>
+          </description-item>
+        </description-list>
 
-      <description-list title="付款信息" v-if="invoice.status == 'wait_pay'">
-        <description-item term="付款状态">待付款</description-item>
-      </description-list>
-      <description-list title="付款信息" v-else-if="invoice.status == 'canceled'">
-        <description-item term="应付金额">{{ formatMoney(invoice.final_money) }}</description-item>
-      </description-list>
-      <description-list title="付款信息" v-else>
-        <description-item term="实付金额">{{ formatMoney(invoice.final_money) }}</description-item>
-        <description-item term="付款方式">微信支付</description-item>
-        <description-item term="付款时间">{{ invoice.payment_time }}</description-item>
-      </description-list>
+        <description-list title="物流">
+          <description-item term="物流状态">无物流信息</description-item>
+        </description-list>
+      </div>
+      <div class="x-logistics">
+        <description-list title="收货人信息">
+          <description-item term="收货人">{{ shipInfo.name }}</description-item>
+          <description-item term="联系电话">{{ shipInfo.phone }}</description-item>
+          <description-item term="收货地址">{{ shipInfo.area_name }} {{ shipInfo.address }}</description-item>
+        </description-list>
+        
+        <description-list title="配送信息">
+          <description-item term="配送方式">快递</description-item>
+        </description-list>
 
-      <description-list title="买家信息">
-        <description-item term="买家留言">{{ invoice.message ? invoice.message : '-' }}</description-item>
-      </description-list>
+        <description-list title="付款信息" v-if="invoice.status == 'wait_pay'">
+          <description-item term="付款状态">待付款</description-item>
+        </description-list>
+        <description-list title="付款信息" v-else-if="invoice.status == 'canceled'">
+          <description-item term="应付金额">{{ formatMoney(invoice.final_money) }}</description-item>
+        </description-list>
+        <description-list title="付款信息" v-else>
+          <description-item term="实付金额">{{ formatMoney(invoice.final_money) }}</description-item>
+          <description-item term="付款方式">微信支付</description-item>
+          <description-item term="付款时间">{{ invoice.payment_time }}</description-item>
+        </description-list>
+
+        <description-list title="买家信息">
+          <description-item term="买家留言">{{ invoice.message ? invoice.message : '-' }}</description-item>
+        </description-list>
+      </div>
     </a-card>
 
     <a-card class="x-trade" :bordered="false" title="交易信息" v-if="shipInfo">
@@ -127,7 +157,7 @@ import { mixinDevice } from '@/utils/mixin'
 import { OrderStatusInfo } from '../modules/mixin'
 import { PageView } from '@/layouts'
 import DescriptionList from '@/components/DescriptionList'
-import { OrderService, product_service } from '@/api/service'
+import { OrderService } from '@/api/service'
 import { formatPrice } from '@/utils/util'
 import OrderOperationForms from '../modules/OrderOperationForms'
 
@@ -201,6 +231,11 @@ export default {
       }
     },
 
+    isShipped () {
+      const status = this.invoice.status
+      return (status === 'shipped') || (status === 'finished')
+    },
+
     invoiceProducts () {
       if (this.invoice) {
         return this.invoice.products
@@ -216,6 +251,8 @@ export default {
         }, 0)
 
         return this.formatMoney(price)
+      } else {
+        return 0
       }
     }
   },
@@ -232,6 +269,19 @@ export default {
 
     accumulatedMoney (product) {
       return formatPrice(product.price * product.count)
+    },
+
+    getOperationLog (action) {
+      if (!this.order) {
+        return ''
+      }
+
+      const operationLog = this.order.operation_logs.find(log => {
+        console.log(JSON.stringify(log))
+        return log.action === action
+      })
+
+      return operationLog
     },
 
     getDateTime (action) {
@@ -279,15 +329,65 @@ export default {
     border: 1px solid #ebedf0;
     border-left: none;
     border-bottom: none;
+
+    .ant-btn {
+      text-align: left;
+      padding-left: 0px;
+    }
   }
 
-  .x-logistics .ant-card-body {
+  .page-header .x-remark {
+    margin-top: 20px;
+  }
+
+  .x-express {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    padding-bottom: 0px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e8e8e8;
 
     .description-list {
-      flex: 1;
+      width: 300px;
+      .ant-row {
+        display: flex;
+        flex-direction: column;
+
+        .ant-col-md-8, .ant-col-sm-12, .ant-col-xs-24 {
+          width: 100% !important;
+        }
+      }
+    }
+
+    .x-i-product {
+      display: inline-block;
+      text-align: center;
+      margin-right: 5px;
+
+      .x-i-img {
+        height: 60px;
+        width: 60px;
+
+        img {
+          max-width: 60px;
+          max-height: 60px;
+        }
+      }
+
+      .x-i-info {
+        line-height: 18px;
+        font-size: 12px;
+        color: #AAA;
+      }
+    }
+  }
+
+  .x-logistics {
+    display: flex;
+    flex-direction: row;
+
+    .description-list {
+      width: 300px;
       .ant-row {
         display: flex;
         flex-direction: column;

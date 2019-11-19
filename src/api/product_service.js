@@ -23,6 +23,8 @@ class ProductService {
 
       return skuInfo
     })
+
+    logisticsInfo.unified_postage_money = Math.round(logisticsInfo.unified_postage_money * 100)
     
     var resp = await Resource.post({
       resource: 'ginger-mall:product.product',

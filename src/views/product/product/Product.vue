@@ -196,7 +196,7 @@
               <span class="mr5">统一运费</span>
               <a-input-number
                 :min="0"
-                :step="0.1"
+                :step="0.01"
                 :formatter="value => `¥ ${value}`"
                 v-decorator="[
                   'unifiedPostageMoney'
@@ -408,7 +408,7 @@ export default {
       const imoneyCodes = []
       const logisticsInfo = {
         postage_type: values.logisticsType,
-        unified_postage_money: `${values.unifiedPostageMoney}`
+        unified_postage_money: values.unifiedPostageMoney
       }
       console.log('Received values of form: ', values)
 
