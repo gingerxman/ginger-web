@@ -159,7 +159,7 @@ export default {
         width: '80px'
       }, {
         title: '总销量',
-        dataIndex: 'sales',
+        dataIndex: 'sold_count',
         width: '80px'
       }, {
         title: '操作',
