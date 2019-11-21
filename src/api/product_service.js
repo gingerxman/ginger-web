@@ -26,19 +26,24 @@ class ProductService {
 
     logisticsInfo.unified_postage_money = Math.round(logisticsInfo.unified_postage_money * 100)
     
-    var resp = await Resource.post({
-      resource: 'ginger-mall:product.product',
-      data: {
-        id: product.id,
-        base_info: JSON.stringify(baseInfo),
-        media_info: JSON.stringify(mediaInfo),
-        skus_info: JSON.stringify(skuInfos),
-        imoney_codes: JSON.stringify(imoneyCodes),
-        logistics_info: JSON.stringify(logisticsInfo)
-      }
-    })
+    try {
+      await Resource.post({
+        resource: 'ginger-mall:product.product',
+        data: {
+          id: product.id,
+          base_info: JSON.stringify(baseInfo),
+          media_info: JSON.stringify(mediaInfo),
+          skus_info: JSON.stringify(skuInfos),
+          imoney_codes: JSON.stringify(imoneyCodes),
+          logistics_info: JSON.stringify(logisticsInfo)
+        }
+      })
 
-    return resp.data
+      return true
+    } catch (e) {
+      console.error(e)
+      return false
+    }
   }
 
   async getProducts (type) {

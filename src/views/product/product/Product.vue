@@ -413,7 +413,12 @@ export default {
       console.log('Received values of form: ', values)
 
       if (this.product != null) {
-        await ProductService.updateProduct(this.product, baseInfo, mediaInfo, skuInfos, imoneyCodes, logisticsInfo)
+        const isSuccess = await ProductService.updateProduct(this.product, baseInfo, mediaInfo, skuInfos, imoneyCodes, logisticsInfo)
+        if (isSuccess) {
+          this.$message.success('更新商品成功');
+        } else {
+          this.$message.error('更新商品失败！');
+        }
       } else {
         await ProductService.createProduct(baseInfo, mediaInfo, skuInfos, imoneyCodes, logisticsInfo)
       }
@@ -496,7 +501,7 @@ export default {
             promotionTitle: product.base_info.promotion_title,
             detail: product.base_info.detail,
             logisticsType: product.logistics_info.postage_type,
-            unifiedPostageMoney: product.logistics_info.unified_postage_money,
+            unifiedPostageMoney: product.logistics_info.unified_postage_money / 100,
             linyPrice: undefined,
             sku: standardSku
           })
