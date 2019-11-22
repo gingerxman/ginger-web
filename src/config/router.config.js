@@ -14,28 +14,37 @@ export const asyncRouterMap = [
       // product
       {
         path: '/product',
-        redirect: '/product/product',
+        redirect: '/product/products',
         component: PageView,
         meta: { title: '商品', icon: 'shopping', permission: [ 'product' ] },
         children: [
           {
-            path: '/product/product',
-            name: 'ProductList',
-            // name: 'BaseForm',
-            component: () => import('@/views/product/product/Product'),
-            meta: { title: '编辑商品', keepAlive: true, permission: [ 'product' ] }
-          },
-          {
             path: '/product/products',
-            name: 'ProductLists',
-            component: () => import('@/views/product/products/ProductList'),
-            meta: { title: '商品管理', keepAlive: true, permission: [ 'product' ] }
+            name: 'ProductManage',
+            component: RouteView,
+            redirect: '/product/products',
+            hideChildrenInMenu: true,
+            meta: { title: '商品查询', permission: [ 'product' ] },
+            children: [
+              {
+                path: '/product/product',
+                name: 'ProductList',
+                component: () => import('@/views/product/product/Product'),
+                meta: { title: '编辑商品', keepAlive: true, permission: [ 'product' ] }
+              },
+              {
+                path: '/product/products',
+                name: 'ProductLists',
+                component: () => import('@/views/product/products/ProductList'),
+                meta: { title: '商品管理', keepAlive: true, permission: [ 'product' ] }
+              }
+            ]
           },
           {
-            path: '/product/product3',
-            name: 'Product3',
+            path: '/product/tags',
+            name: 'ProductTags',
             component: () => import('@/views/form/advancedForm/AdvancedForm'),
-            meta: { title: '商品管理3', keepAlive: true, permission: [ 'form' ] }
+            meta: { title: '商品分组', keepAlive: true, permission: [ 'form' ] }
           }
         ]
       },
@@ -58,6 +67,69 @@ export const asyncRouterMap = [
             name: 'Order',
             component: () => import('@/views/order/order/Order'),
             meta: { title: '订单详情', keepAlive: true, permission: [ 'order' ] }
+          }
+        ]
+      },
+
+      // crm
+      {
+        path: '/crm',
+        name: 'crm',
+        component: RouteView,
+        redirect: '/crm/users',
+        meta: { title: '客户', icon: 'user', permission: [ 'user' ] },
+        children: [
+          {
+            path: '/crm/customers',
+            name: 'UserList',
+            component: RouteView,
+            redirect: '/crm/customers',
+            meta: { title: '客户管理', permission: [ 'user' ] },
+            children: [
+              {
+                path: '/crm/customers',
+                name: 'CustomerManage',
+                component: RouteView,
+                redirect: '/crm/customers',
+                hideChildrenInMenu: true,
+                meta: { title: '客户查询', permission: [ 'user' ] },
+                children: [
+                  {
+                    path: '/crm/customer',
+                    name: 'Customer',
+                    component: () => import('@/views/crm/customer/Customer'),
+                    meta: { title: '客户详情', permission: [ 'user' ] }
+                  },
+                  {
+                    path: '/crm/customers',
+                    name: 'Customers',
+                    component: () => import('@/views/crm/customers/Customers'),
+                    meta: { title: '客户查询', permission: [ 'user' ] }
+                  }
+                ]
+              },
+              {
+                path: '/crm/group',
+                name: 'UserGroups',
+                component: () => import('@/views/crm/customers/Customers'),
+                meta: { title: '客户分群', permission: [ 'user' ] }
+              }
+            ]
+          },
+          {
+            path: '/crm/benefit',
+            name: 'UserBenefit',
+            component: RouteView,
+            redirect: '/crm/points',
+            meta: { title: '权益管理', permission: [ 'user' ] },
+            children: [
+              {
+                path: '/crm/points',
+                name: 'UserPoints',
+                component: () => import('@/views/other/UserList'),
+                meta: { title: '积分管理', permission: [ 'user' ] }
+              }
+            ]
           }
         ]
       },
