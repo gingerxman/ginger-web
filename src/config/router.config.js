@@ -24,19 +24,19 @@ export const asyncRouterMap = [
             component: RouteView,
             redirect: '/product/products',
             hideChildrenInMenu: true,
-            meta: { title: '商品查询', permission: [ 'product' ] },
+            meta: { title: '商品管理', permission: [ 'product' ] },
             children: [
               {
                 path: '/product/product',
                 name: 'ProductList',
                 component: () => import('@/views/product/product/Product'),
-                meta: { title: '编辑商品', keepAlive: true, permission: [ 'product' ] }
+                meta: { title: '编辑商品', keepAlive: false, permission: [ 'product' ] }
               },
               {
                 path: '/product/products',
                 name: 'ProductLists',
                 component: () => import('@/views/product/products/ProductList'),
-                meta: { title: '商品管理', keepAlive: true, permission: [ 'product' ] }
+                meta: { title: '商品管理', keepAlive: false, permission: [ 'product' ] }
               }
             ]
           },
@@ -45,6 +45,12 @@ export const asyncRouterMap = [
             name: 'ProductTags',
             component: () => import('@/views/form/advancedForm/AdvancedForm'),
             meta: { title: '商品分组', keepAlive: true, permission: [ 'form' ] }
+          },
+          {
+            path: '/product/categories',
+            name: 'categories',
+            component: () => import('@/views/product/category/Categories'),
+            meta: { title: '商品类目' }
           }
         ]
       },
@@ -130,6 +136,22 @@ export const asyncRouterMap = [
                 meta: { title: '积分管理', permission: [ 'user' ] }
               }
             ]
+          }
+        ]
+      },
+
+      // account
+      {
+        path: '/corp_account',
+        redirect: '/corp_account/accounts',
+        component: RouteView,
+        meta: { title: '账号', icon: 'user', permission: [ 'user' ] },
+        children: [
+          {
+            path: '/corp_account/accounts',
+            name: 'Accounts',
+            component: () => import('@/views/order/orders/Orders'),
+            meta: { title: '账号管理', keepAlive: true, permission: [ 'order' ] }
           }
         ]
       },

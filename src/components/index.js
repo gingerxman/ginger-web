@@ -29,6 +29,9 @@ import ExceptionPage from '@/components/Exception'
 import StandardFormRow from '@/components/StandardFormRow'
 import ArticleListContent from '@/components/ArticleListContent'
 
+// custom components
+import SortAction from '@/components/SortAction'
+
 export {
   AvatarList,
   Bar,
@@ -58,5 +61,7 @@ export {
   IconSelector,
   TagSelect,
   StandardFormRow,
-  ArticleListContent
+  ArticleListContent,
+
+  SortAction
 }

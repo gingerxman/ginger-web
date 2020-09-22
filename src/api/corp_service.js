@@ -14,7 +14,7 @@ class CorpService {
 
   async getProductProperties () {
     var resp = await Resource.get({
-      resource: 'ginger-mall:product.corp_product_properties',
+      resource: 'ginger-product:product.corp_product_properties',
       data: {
         page: 1,
         count_per_page: 9999

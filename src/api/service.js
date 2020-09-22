@@ -3,8 +3,10 @@ import AccountService from './account_service'
 import UserService from './user_service'
 import CorpService from './corp_service'
 import ProductService from './product_service'
+import ProductCategoryService from './product_category_service'
 import OrderService from './order_service'
 import CustomerService from './customer_service'
+import SystemService from './system_service'
 
 export {
   AccountService,
@@ -12,6 +14,8 @@ export {
   UserService,
   CorpService,
   ProductService,
+  ProductCategoryService,
   OrderService,
-  CustomerService
+  CustomerService,
+  SystemService
 }

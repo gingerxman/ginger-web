@@ -223,7 +223,7 @@
 
         <a-form-item
           :wrapperCol="{ span: 24 }"
-          style="text-align: center"
+          style="text-align:center;"
         >
           <a-button htmlType="submit" type="primary">提交</a-button>
           <a-button style="margin-left: 8px">保存</a-button>
@@ -235,9 +235,10 @@
 </template>
 
 <script>
-import { ProductService } from '@/api/service'
+import { ProductService, SystemService } from '@/api/service'
 import PropertiesSelector from './modules/PropertiesSelector'
 import SkuEditor from './modules/SkuEditor'
+import Vue from 'vue'
 
 export default {
   name: 'ProductForm',
@@ -259,15 +260,8 @@ export default {
       
       product: null,
       categories: null,
-      images: [{
-        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
-      }],
-      uploadFileList: [{
-        uid: '-1',
-        name: 'xxx.png',
-        status: 'done',
-        url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png'
-      }],
+      images: [],
+      uploadFileList: [],
       logisticsType: 1,
       skus: [],
       useStandardSku: true,
@@ -355,6 +349,7 @@ export default {
         } else {
           skus = this.$refs.skuEditor.getSkus()
         }
+        console.log(skus)
         // TODO: 对sku进行校验
 
         setTimeout(async () => {
@@ -367,9 +362,10 @@ export default {
     async submitProduct (values, skus) {
       const baseInfo = {
         name: values.name,
-        type: 'product',
+        type: 'physical',
         category_id: values.category || 0,
         code: '',
+        liny_price: values.linyPrice,
         promotion_title: values.promotionTitle,
         detail: values.detail
       }
@@ -413,40 +409,75 @@ export default {
       console.log('Received values of form: ', values)
 
       if (this.product != null) {
-        const isSuccess = await ProductService.updateProduct(this.product, baseInfo, mediaInfo, skuInfos, imoneyCodes, logisticsInfo)
-        if (isSuccess) {
-          this.$message.success('更新商品成功');
-        } else {
-          this.$message.error('更新商品失败！');
+        try {
+          await ProductService.updateProduct(this.product, baseInfo, mediaInfo, skuInfos, imoneyCodes, logisticsInfo)
+          this.$message.success('更新商品成功')
+        } catch (e) {
+          this.$message.error('更新商品失败！')
         }
       } else {
-        await ProductService.createProduct(baseInfo, mediaInfo, skuInfos, imoneyCodes, logisticsInfo)
+        try {
+          const { id } = await ProductService.createProduct(baseInfo, mediaInfo, skuInfos, imoneyCodes, logisticsInfo)
+          this.$message.success('创建商品成功')
+          setTimeout(() => {
+            Vue.ls.set("__new_pool_product_id", id)
+            Vue.ls.set("__product_tab", "forsale")
+            this.$router.back(-1)
+          }, 1000)
+        } catch (e) {
+          this.$message.error('创建商品失败！')
+        }
       }
     },
 
-    loadProduct (productId) {
-      if (productId === -1) {
-        setTimeout(() => {
-          this.form.setFieldsValue({
-            name: '东坡肘子',
-            category: undefined,
-            promotionTitle: '东坡肘子真好吃',
-            detail: '东坡肘子的详情',
-            linyPrice: 9.99,
-            // 物流信息
-            logisticsType: 'unified',
-            unifiedPostageMoney: 3.14,
-            // 规格信息
-            sku: {
-              id: 0,
-              price: 3.14,
-              costPrice: 1.11,
-              stocks: 10,
-              code: '12345'
-            }
+    loadDefaultData () {
+      setTimeout(async () => {
+        const countInfo = await ProductService.getProductCountInfo()
+        const base = countInfo.onsale_count + countInfo.forsale_count
+        this.form.setFieldsValue({
+          name: '东坡肘子'+base,
+          category: undefined,
+          promotionTitle: '东坡肘子真好吃-' + base,
+          detail: '东坡肘子的详情-' + base,
+          linyPrice: (9.99 + base).toFixed(2),
+          // 物流信息
+          logisticsType: 'unified',
+          unifiedPostageMoney: 3.14,
+          // 规格信息
+          sku: {
+            id: 0,
+            name: 'standard',
+            price: (3.14 + base).toFixed(2),
+            costPrice: (1.11 + base).toFixed(2),
+            stocks: 10,
+            code: (12345 + base) + ''
+          }
+        })
+
+        const images = [
+          'http://resource.vxiaocheng.com/ginger/dev/zhouzi1.jpg',
+          'http://resource.vxiaocheng.com/ginger/dev/zhouzi2.jpg',
+          'http://resource.vxiaocheng.com/ginger/dev/zhouzi3.jpg'
+        ]
+        images.forEach(image => {
+          this.images.push({
+            url: image
           })
-          this.$refs.nameInput.focus()
-        }, 100)
+          this.uploadFileList.push({
+            uid: image,
+            name: 'xxx.png',
+            status: 'done',
+            url: image
+          })
+        })
+
+        this.$refs.nameInput.focus()
+      }, 100)
+    },
+
+    loadProduct (productId) {
+      if (productId === -1 && SystemService.inDevEnv()) {
+        this.loadDefaultData()
       } else {
         setTimeout(async () => {
           const product = await ProductService.getProduct(productId)
@@ -501,8 +532,8 @@ export default {
             promotionTitle: product.base_info.promotion_title,
             detail: product.base_info.detail,
             logisticsType: product.logistics_info.postage_type,
-            unifiedPostageMoney: product.logistics_info.unified_postage_money / 100,
-            linyPrice: undefined,
+            unifiedPostageMoney: (product.logistics_info.unified_postage_money / 100).toFixed(2),
+            linyPrice: (product.base_info.liny_price / 100).toFixed(2),
             sku: standardSku
           })
           this.$refs.nameInput.focus()

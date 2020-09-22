@@ -1,6 +1,6 @@
 <template>
   <a-card :bordered="false">
-    <a-tabs defaultActiveKey="onsale" @change="onChangeTab">
+    <a-tabs :activeKey="curTab" @change="onChangeTab">
       <a-tab-pane tab="销售中" key="onsale"></a-tab-pane>
       <a-tab-pane tab="已售罄" key="sellout"></a-tab-pane>
       <a-tab-pane tab="仓库中" key="forsale"></a-tab-pane>
@@ -76,15 +76,17 @@
       <a-button type="default" @click="onClickCreate">上架</a-button>
     </div>
 
-    <a-table
+    <!--  #:rowSelection="{selectedRowKeys: selectedProductKeys, onChange: onSelectProducts}" -->
+
+    <s-table
       ref="table"
-      size="default"
+      size="middle"
       :rowKey="record => record.id"
       :columns="columns"
-      :dataSource="products"
-      :pagination="pagination"
-      :loading="loading"
-      :rowSelection="{selectedRowKeys: selectedProductKeys, onChange: onSelectProducts}"
+      :data="loadProducts"
+      :pageSize="10"
+      :rowSelection="false"
+      :filters="queryParam"
       @change="onChangeTable"
     >
       <div class="x-productHeader" slot="info" slot-scope="text, record">
@@ -93,7 +95,11 @@
         </div>
         <div class="x-i-info">
           <div class="x-i-title"><a href="/product/product" target="_blank">{{ record.base_info.name }}</a></div>
-          <div class="x-i-price">{{ formatPrice(record) }}</div>
+          <a-tag v-if="record.category" color="orange" class="mt5">{{ record.category.name }}</a-tag>
+          <div class="x-i-price mt10">
+            <span>￥{{ formatPrice(record) }}</span>
+            <span class="x-i-linyPrice" v-if="record.base_info.liny_price > 0">￥{{ formatLinyPrice(record) }}</span>
+          </div>
         </div>
       </div>
 
@@ -103,12 +109,16 @@
       </div>
 
       <span slot="action" slot-scope="text, record">
-        <template>
+        <template v-if="record.base_info.shelf_status == 'off_shelf'">
           <a :href="`/product/product?id=${record.id}`" target="_blank">编辑</a>
-          <!-- <a-divider type="vertical" /> -->
+          <a-divider type="vertical" />
+          <a @click.stop="onClickOnShelf(record)">上架</a>
+        </template>
+        <template v-if="record.base_info.shelf_status == 'on_shelf'">
+          <a @click.stop="onClickOffShelf(record)">下架</a>
         </template>
       </span>
-    </a-table>
+    </s-table>
   </a-card>
 </template>
 
@@ -116,6 +126,8 @@
 import moment from 'moment'
 import { ProductService } from '@/api/service'
 import { formatPrice } from '@/utils/util'
+import { STable, SortAction } from '@/components'
+import Vue from 'vue'
 
 const statusMap = {
   0: {
@@ -138,12 +150,20 @@ const statusMap = {
 
 export default {
   name: 'ProductList',
+
+  components: {
+    STable,
+    SortAction
+  },
+
   data () {
     return {
       // 高级搜索 展开/关闭
       advanced: false,
       // 当前Tab
       curTab: 'onsale',
+      // 新建商品的id
+      newPoolProductId: 0,
       // 查询参数
       queryParam: {},
       columns: [{
@@ -164,17 +184,9 @@ export default {
       }, {
         title: '操作',
         dataIndex: 'action',
-        width: '100px',
+        width: '140px',
         scopedSlots: { customRender: 'action' }
       }],
-      pagination: {
-        current: 1,
-        total: 0,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        pageSize: 20,
-        pageSizeOptions: ['10', '20', '30', '40']
-      },
       loading: false,
       products: [],
       selectedProductKeys: [],
@@ -190,10 +202,18 @@ export default {
     }
   },
   created () {
+    const productTab = Vue.ls.get('__product_tab')
+    if (productTab) {
+      this.curTab = productTab
+      Vue.ls.remove('__product_tab')
+      this.newPoolProductId = Vue.ls.get('__new_pool_product_id')
+      Vue.ls.remove('__new_pool_product_id')
+    }
+    console.log("in ProductList created")
   },
 
   async mounted () {
-    await this.loadProducts()
+    console.log("in ProductList mounted")
   },
 
   methods: {
@@ -201,19 +221,20 @@ export default {
       return formatPrice(record.skus[0].price)
     },
 
-    async loadProducts () {
+    formatLinyPrice (record) {
+      return formatPrice(record.base_info.liny_price)
+    },
+
+    loadProducts (parameter) {
+      console.log("load products")
+      // parameter.filters = { ...parameter.filters, ...{ '__f-status-equal': this.curTab } }
       const productType = this.curTab
-      var data = await ProductService.getProducts(productType)
-      this.products = data.products
-      this.pagination = { ...this.pagination,
-        page: data.pageinfo.cur_page,
-        total: data.pageinfo.total_count
-      }
+      return ProductService.getProducts(productType, parameter)
     },
 
     async onChangeTab (activeKey) {
       this.curTab = activeKey
-      await this.loadProducts()
+      this.$refs.table.refresh()
     },
 
     onChangeTable (page, event) {
@@ -231,6 +252,26 @@ export default {
         query: {
         }
       })
+    },
+
+    async onClickOnShelf (product) {
+      try {
+        await ProductService.putProductsOnShelf([product])
+        this.$message.success('上架成功!')
+        this.$refs.table.refresh()
+      } catch (e) {
+        this.$message.error('上架失败!')
+      }
+    },
+
+    async onClickOffShelf (product) {
+      try {
+        await ProductService.putProductsOffShelf([product])
+        this.$message.success('下架成功!')
+        this.$refs.table.refresh()
+      } catch (e) {
+        this.$message.error('下架失败!')
+      }
     },
 
     handleOk () {
@@ -289,9 +330,16 @@ export default {
       .x-i-price {
         margin-top: 5px;
         vertical-align: middle;
-        font-size: 12px;
+        font-size: 14px;
         line-height: 14px;
         color: #f60;
+
+        .x-i-linyPrice {
+          font-size: 12px;
+          text-decoration: line-through;
+          color: #AFAFAF;
+          margin-left: 5px;
+        }
       }
     }
   }
