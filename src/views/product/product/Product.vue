@@ -128,6 +128,7 @@
         <a-form-item
           v-if="useStandardSku"
           label="成本价"
+          help="成本价用于营销建议，利润分析等"
           :labelCol="labelCol"
           :wrapperCol="wrapperCol">
           <a-input-number
@@ -141,6 +142,7 @@
         </a-form-item>
         <a-form-item
           label="划线价"
+          help="商品没有优惠的情况下，划线价在商品详情会以划线形式显示。"
           :labelCol="labelCol"
           :wrapperCol="wrapperCol">
           <a-input-number

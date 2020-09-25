@@ -27,7 +27,7 @@
             >
               <img class="goods-info__img" :src="product.thumbnail" alt="">
               <div class="goods-info__info">
-                <div class="goods-title"><a href="https://shop45318777.youzan.com/v2/showcase/goods?alias=1y2w8mdeyorxd" rel="noopener noreferrer" target="_blank" title="product.name">{{ product.name }}</a></div>
+                <div class="goods-title"><a :href="`/product/product?id=${product.id}`" rel="noopener noreferrer" target="_blank" title="product.name">{{ product.name }}</a></div>
                 <div class="goods-skus"><a-tag color="cyan" v-if="formatSkuName(product)">{{ formatSkuName(product) }}</a-tag></div>
                 <div class="goods-tags"></div>
               </div>

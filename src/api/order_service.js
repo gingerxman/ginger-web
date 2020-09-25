@@ -7,7 +7,7 @@ class OrderService {
     const filters = {
       'status': invoiceStatus
     }
-    const resource = 'ginger-mall:order.corp_invoices'
+    const resource = 'ginger-order:order.corp_invoices'
     const resp = await Resource.get({
       resource: resource,
       data: {
@@ -32,7 +32,7 @@ class OrderService {
 
   async getOrder (bid) {
     const resp = await Resource.get({
-      resource: 'ginger-mall:order.order',
+      resource: 'ginger-order:order.order',
       data: {
         bid: bid
       }
@@ -43,7 +43,7 @@ class OrderService {
 
   async remarkOrder (bid, remark) {
     const resp = await Resource.post({
-      resource: 'ginger-mall:order.order_remark',
+      resource: 'ginger-order:order.order_remark',
       data: {
         bid: bid,
         remark: remark
@@ -55,7 +55,7 @@ class OrderService {
 
   async cancelInvoice (bid, reason) {
     const resp = await Resource.put({
-      resource: 'ginger-mall:order.canceled_invoice',
+      resource: 'ginger-order:order.canceled_invoice',
       data: {
         bid: bid,
         reason: reason
@@ -74,7 +74,7 @@ class OrderService {
       shipper: ''
     }
     const resp = await Resource.put({
-      resource: 'ginger-mall:order.shipped_invoice',
+      resource: 'ginger-order:order.shipped_invoice',
       data: {
         ship_infos: JSON.stringify([data])
       }
