@@ -34,7 +34,7 @@
           :labelCol="labelCol"
           :wrapperCol="wrapperCol">
           <a-upload
-            action="/api/ginger-mall/material/image/"
+            action="/api/ginger-gateway/resource/image/"
             listType="picture-card"
             name="image"
             :fileList="uploadFileList"
@@ -209,23 +209,20 @@
           </a-radio-group>
         </a-form-item>
 
-        <div class="x-divider">详情</div>
+        <!-- <div class="x-divider">详情</div>
         <a-form-item
           label="商品详情"
           :labelCol="labelCol"
           :wrapperCol="wrapperCol">
-          <a-textarea
-            rows="4"
-            v-decorator="[
-              'detail',
-            ]"
-            placeholder="请输入商品详情"
-          />
-        </a-form-item>
+          <wang-editor :value="detail" @change="onChangeContent" :disabled="disabled"/>
+        </a-form-item> -->
+
+        <div class="x-divider">商品详情</div>
+        <wang-editor :value="detail" @change="onChangeContent" :disabled="disabled"/>
 
         <a-form-item
           :wrapperCol="{ span: 24 }"
-          style="text-align:center;"
+          style="text-align:center; margin-top:30px;"
         >
           <a-button htmlType="submit" type="primary">提交</a-button>
           <a-button style="margin-left: 8px">保存</a-button>
@@ -241,13 +238,15 @@ import { ProductService, SystemService } from '@/api/service'
 import PropertiesSelector from './modules/PropertiesSelector'
 import SkuEditor from './modules/SkuEditor'
 import Vue from 'vue'
+import WangEditor from '@/components/Editor/WangEditor'
 
 export default {
   name: 'ProductForm',
 
   components: {
     PropertiesSelector,
-    SkuEditor
+    SkuEditor,
+    WangEditor
   },
 
   computed: {
@@ -261,6 +260,11 @@ export default {
       wrapperCol: { lg: { span: 10 }, sm: { span: 17 } },
       
       product: null,
+
+      // 富文本编辑
+      detail: '',
+
+      disabled: false,
       categories: null,
       images: [],
       uploadFileList: [],
@@ -369,7 +373,7 @@ export default {
         code: '',
         liny_price: values.linyPrice,
         promotion_title: values.promotionTitle,
-        detail: values.detail
+        detail: this.detail
       }
       // if (values) {
       //   return
@@ -436,11 +440,11 @@ export default {
       setTimeout(async () => {
         const countInfo = await ProductService.getProductCountInfo()
         const base = countInfo.onsale_count + countInfo.forsale_count
+        this.detail = '东坡肘子的详情-' + base
         this.form.setFieldsValue({
           name: '东坡肘子'+base,
           category: undefined,
           promotionTitle: '东坡肘子真好吃-' + base,
-          detail: '东坡肘子的详情-' + base,
           linyPrice: (9.99 + base).toFixed(2),
           // 物流信息
           logisticsType: 'unified',
@@ -528,11 +532,11 @@ export default {
               code: ''
             }
           }
+          this.detail = product.base_info.detail
           this.form.setFieldsValue({
             name: product.base_info.name,
             category: product.category ? product.category.id : undefined,
             promotionTitle: product.base_info.promotion_title,
-            detail: product.base_info.detail,
             logisticsType: product.logistics_info.postage_type,
             unifiedPostageMoney: (product.logistics_info.unified_postage_money / 100).toFixed(2),
             linyPrice: (product.base_info.liny_price / 100).toFixed(2),
@@ -548,6 +552,10 @@ export default {
         const data = await ProductService.getCreateOptions()
         this.categories = data.categories
       })
+    },
+
+    onChangeContent (content) {
+      this.detail = content
     }
   },
 

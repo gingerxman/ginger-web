@@ -3,7 +3,7 @@ import qs from 'qs'
 
 // 创建 axios 实例
 class ResourceCls {
-  async _call (method, endpoint, data) {
+  async _call (method, endpoint, data, files=null) {
     const timestamp = Math.floor(Date.now())
     const path = endpoint.replace(':', '/').replace('.', '/')
     let url = `/${path}/`
@@ -11,7 +11,10 @@ class ResourceCls {
     if (method === 'get') {
       data['_t'] = timestamp
       return axios.get(url, {
-        params: data
+        params: data,
+        paramsSerializer: (params) => {
+          return qs.stringify(params, { arrayFormat: 'indices' })
+        }
       })
     } else {
       if (method === 'put') {
@@ -20,13 +23,18 @@ class ResourceCls {
         url += `?_t=${timestamp}&_method=delete`
       }
 
-      const options = {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        data: qs.stringify(data),
-        url: url
+      if (files) {
+        return axios.post(url, files, {})
+      } else {
+        const options = {
+          method: 'POST',
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          data: qs.stringify(data),
+          url: url
+        }
+
+        return axios(options)
       }
-      return axios(options)
     }
   }
 
@@ -44,6 +52,10 @@ class ResourceCls {
 
   async delete (option) {
     return this._call('delete', option.resource, option.data)
+  }
+
+  async uploadFile (option) {
+    return this._call('put', option.resource, {}, option.files)
   }
 }
 
