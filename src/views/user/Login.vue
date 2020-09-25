@@ -90,11 +90,12 @@
 
       <a-form-item>
         <a-checkbox v-decorator="['rememberMe']">自动登录</a-checkbox>
-        <router-link
+        <a @click="onClickForgetPassword" class="forge-password" style="float:right; display:block;">忘记密码</a>
+        <!-- <router-link
           :to="{ name: 'recover', params: { user: 'aaa'} }"
           class="forge-password"
           style="float: right;"
-        >忘记密码</router-link>
+        >忘记密码</router-link> -->
       </a-form-item>
 
       <a-form-item style="margin-top:24px">
@@ -301,12 +302,12 @@ export default {
       */
       this.$router.push({ name: 'analysis' })
       // 延迟 1 秒显示欢迎信息
-      setTimeout(() => {
-        this.$notification.success({
-          message: '欢迎',
-          description: `${timeFix()}，欢迎回来`
-        })
-      }, 1000)
+      // setTimeout(() => {
+      //   this.$notification.success({
+      //     message: '欢迎',
+      //     description: `${timeFix()}，欢迎回来`
+      //   })
+      // }, 1000)
       this.isLoginError = false
     },
     requestFailed (err) {
@@ -316,6 +317,10 @@ export default {
         description: ((err.response || {}).data || {}).message || '请求出现错误，请稍后再试',
         duration: 4
       })
+    },
+
+    onClickForgetPassword () {
+      this.$message.warn('请联系管理员重置密码')
     }
   }
 }
@@ -331,6 +336,9 @@ export default {
 }
 
 .user-layout-login {
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 10px 20px;
+
   label {
     font-size: 14px;
   }
@@ -353,6 +361,7 @@ export default {
   }
 
   .user-login-other {
+    display: none;
     text-align: left;
     margin-top: 24px;
     line-height: 22px;

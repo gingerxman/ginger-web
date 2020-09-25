@@ -9,20 +9,20 @@
           </a>
         </div>
         <div class="desc">
-          金捷商城 —— 功能最强大的开源B2C电商平台。
+          金捷商城 —— 功能强大的开源B2C电商平台。
         </div>
       </div>
 
       <route-view></route-view>
 
       <div class="footer">
-        <div class="links">
+        <!-- <div class="links">
           <a href="_self">帮助</a>
           <a href="_self">隐私</a>
           <a href="_self">条款</a>
-        </div>
+        </div> -->
         <div class="copyright">
-          Copyright &copy; 2019 Ginger Team 出品
+          Copyright &copy; 2019-2020 Ginger Team 出品
         </div>
       </div>
     </div>
@@ -51,7 +51,7 @@ export default {
 
 <style lang="less" scoped>
   #userLayout.user-layout-wrapper {
-    height: 100%;
+    height: 100vh;
 
     &.mobile {
       .container {
@@ -64,8 +64,9 @@ export default {
 
     .container {
       width: 100%;
-      min-height: 100%;
-      background: #f0f2f5 url(~@/assets/background.svg) no-repeat 50%;
+      min-height: 100vh;
+      // background: #f0f2f5 url(~@/assets/background.svg) no-repeat 50%;
+      background: #f0f2f5 url(http://vxiaocheng-jh.oss-cn-beijing.aliyuncs.com/ginger/img/ginger-bg6.jpeg) no-repeat;
       background-size: 100%;
       padding: 110px 0 144px;
       position: relative;
@@ -101,6 +102,7 @@ export default {
           .title {
             font-size: 33px;
             color: rgba(0, 0, 0, .85);
+            color: #FFFFFF;
             font-family: Avenir, 'Helvetica Neue', Arial, Helvetica, sans-serif;
             font-weight: 600;
             position: relative;
@@ -109,7 +111,8 @@ export default {
         }
         .desc {
           font-size: 14px;
-          color: rgba(0, 0, 0, 0.45);
+          // color: rgba(0, 0, 0, 0.45);
+          color:#FFFFFF;
           margin-top: 12px;
           margin-bottom: 40px;
         }
@@ -141,7 +144,8 @@ export default {
           }
         }
         .copyright {
-          color: rgba(0, 0, 0, 0.45);
+          // color: rgba(0, 0, 0, 0.45);
+          color: #FFFFFF;
           font-size: 14px;
         }
       }

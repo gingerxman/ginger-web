@@ -13,6 +13,15 @@ class AccountService {
 
     return resp.data.corps
   }
+
+  async getCorpUser () {
+    var resp = await Resource.get({
+      resource: 'ginger-account:corp.corp_user',
+      data: {}
+    })
+
+    return resp.data
+  }
 }
 
 export default new AccountService()
