@@ -1,11 +1,5 @@
 <template>
   <a-card :bordered="false">
-    <a-tabs :activeKey="curTab" @change="onChangeTab">
-      <a-tab-pane tab="销售中" key="onsale"></a-tab-pane>
-      <a-tab-pane tab="已售罄" key="sellout"></a-tab-pane>
-      <a-tab-pane tab="仓库中" key="forsale"></a-tab-pane>
-    </a-tabs>
-
     <div class="mb15">
       <a-button type="primary" icon="plus" @click="onClickCreate">发布商品</a-button>
     </div>
@@ -14,66 +8,67 @@
       <a-form layout="inline">
         <a-row :gutter="48">
           <a-col :md="8" :sm="24">
-            <a-form-item label="规则编号">
-              <a-input v-model="queryParam.id" placeholder=""/>
+            <a-form-item label="商品名称">
+              <a-input v-model="queryParam.name__contains" placeholder=""/>
             </a-form-item>
           </a-col>
+
           <a-col :md="8" :sm="24">
-            <a-form-item label="使用状态">
-              <a-select v-model="queryParam.status" placeholder="请选择" default-value="0">
-                <a-select-option value="0">全部</a-select-option>
-                <a-select-option value="1">关闭</a-select-option>
-                <a-select-option value="2">运行中</a-select-option>
+            <a-form-item label="商品分组" :labelCol="{span:3}">
+              <a-select v-model="queryParam.group" placeholder="请选择" default-value="0">
+                <a-select-option value="0">分组1</a-select-option>
+                <a-select-option value="1">分组2</a-select-option>
+                <a-select-option value="2">分组3</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
-          <template v-if="advanced">
-            <a-col :md="8" :sm="24">
-              <a-form-item label="调用次数">
-                <a-input-number v-model="queryParam.callNo" style="width: 100%"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="8" :sm="24">
-              <a-form-item label="更新日期">
-                <a-date-picker v-model="queryParam.date" style="width: 100%" placeholder="请输入更新日期"/>
-              </a-form-item>
-            </a-col>
-            <a-col :md="8" :sm="24">
-              <a-form-item label="使用状态">
-                <a-select v-model="queryParam.useStatus" placeholder="请选择" default-value="0">
-                  <a-select-option value="0">全部</a-select-option>
-                  <a-select-option value="1">关闭</a-select-option>
-                  <a-select-option value="2">运行中</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
-            <a-col :md="8" :sm="24">
-              <a-form-item label="使用状态">
-                <a-select placeholder="请选择" default-value="0">
-                  <a-select-option value="0">全部</a-select-option>
-                  <a-select-option value="1">关闭</a-select-option>
-                  <a-select-option value="2">运行中</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
-          </template>
-          <a-col :md="!advanced && 8 || 24" :sm="24">
-            <span class="table-page-search-submitButtons" :style="advanced && { float: 'right', overflow: 'hidden' } || {} ">
-              <a-button type="primary" @click="$refs.table.refresh(true)">查询</a-button>
-              <a-button style="margin-left: 8px" @click="() => queryParam = {}">重置</a-button>
-              <a @click="toggleAdvanced" style="margin-left: 8px">
-                {{ advanced ? '收起' : '展开' }}
-                <a-icon :type="advanced ? 'up' : 'down'"/>
-              </a>
+
+          <a-col :md="8" :sm="24">
+            <a-form-item label="商品类目" :labelCol="{span:3}">
+              <a-select v-model="queryParam.category_id" placeholder="请选择" default-value="0">
+                <a-select-option
+                  v-for="category in categories"
+                  :key="category.id"
+                  :value="category.id">{{ category.name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-col>
+
+          <a-col :md="8" :sm="24">
+            <a-form-item label="销量" :labelCol="{span:4}">
+              <a-input-number v-model="queryParam.callNo" style="width: 100%"/>
+            </a-form-item>
+          </a-col>
+
+          <a-col :md="8" :sm="24">
+            <a-form-item label="价格">
+              <a-input-number v-model="queryParam.callNo" style="width: 100%"/>
+            </a-form-item>
+          </a-col>
+        </a-row>
+
+        <a-row :gutter="48">
+          <a-col :md="24" :sm="24">
+            <span class="table-page-search-submitButtons" :style="{ float: 'right', overflow: 'hidden' }">
+              <a-button type="primary" @click="handleSearch">查询</a-button>
+              <a-button style="margin-left: 8px" @click="resetSearchForm">重置</a-button>
             </span>
           </a-col>
         </a-row>
       </a-form>
     </div>
 
+    <a-tabs :activeKey="curTab" @change="onChangeTab" style="margin-top:20px;">
+      <a-tab-pane tab="销售中" key="onsale"></a-tab-pane>
+      <a-tab-pane tab="已售罄" key="sellout"></a-tab-pane>
+      <a-tab-pane tab="仓库中" key="forsale"></a-tab-pane>
+    </a-tabs>
+
     <div class="table-operator">
       <span :style="{marginRight:'10px'}" v-if="selectedProductKeys.length > 0">已选商品 {{ selectedProductKeys.length }}</span>
-      <a-button type="default" @click="onClickCreate">上架</a-button>
+      <a-button v-if="curTab === 'onsale'" type="default" @click="onClickBatchOffShelf">下架</a-button>
+      <a-button v-if="curTab === 'forsale'" type="default" @click="onClickBatchOnShelf">上架</a-button>
     </div>
 
     <!--  #:rowSelection="{selectedRowKeys: selectedProductKeys, onChange: onSelectProducts}" -->
@@ -84,8 +79,8 @@
       :rowKey="record => record.id"
       :columns="columns"
       :data="loadProducts"
-      :pageSize="10"
-      :rowSelection="false"
+      :pageSize="20"
+      :rowSelection="{onChange: onSelectProducts}"
       :filters="queryParam"
       @change="onChangeTable"
     >
@@ -124,7 +119,7 @@
 
 <script>
 import moment from 'moment'
-import { ProductService } from '@/api/service'
+import { ProductService, ProductCategoryService } from '@/api/service'
 import { formatPrice } from '@/utils/util'
 import { STable, SortAction } from '@/components'
 import Vue from 'vue'
@@ -158,14 +153,13 @@ export default {
 
   data () {
     return {
-      // 高级搜索 展开/关闭
-      advanced: false,
       // 当前Tab
       curTab: 'onsale',
       // 新建商品的id
       newPoolProductId: 0,
       // 查询参数
-      queryParam: {},
+      queryParam: this.defaultQueryParam(),
+
       columns: [{
         title: '商品',
         scopedSlots: { customRender: 'info' }
@@ -189,6 +183,7 @@ export default {
       }],
       loading: false,
       products: [],
+      categories: [],
       selectedProductKeys: [],
       selectedProducts: []
     }
@@ -214,6 +209,18 @@ export default {
 
   async mounted () {
     console.log("in ProductList mounted")
+    setTimeout(async () => {
+      const { datas } = await ProductCategoryService.getCategories()
+      this.categories = [{
+        id: 0,
+        name: '全部'
+      }, ...datas.map(category => {
+        return {
+          id: category.id,
+          name: category.name
+        }
+      })]
+    })
   },
 
   methods: {
@@ -227,7 +234,7 @@ export default {
 
     loadProducts (parameter) {
       console.log("load products")
-      // parameter.filters = { ...parameter.filters, ...{ '__f-status-equal': this.curTab } }
+      console.log(parameter)
       const productType = this.curTab
       return ProductService.getProducts(productType, parameter)
     },
@@ -264,6 +271,21 @@ export default {
       }
     },
 
+    async onClickBatchOnShelf () {
+      if (this.selectedProductKeys.length === 0) {
+        this.$message.warn('请选择商品')
+        return
+      }
+
+      try {
+        await ProductService.putProductsOnShelf(this.selectedProducts)
+        this.$message.success('上架成功!')
+        this.$refs.table.refresh()
+      } catch (e) {
+        this.$message.error('上架失败!')
+      }
+    },
+
     async onClickOffShelf (product) {
       try {
         await ProductService.putProductsOffShelf([product])
@@ -274,19 +296,36 @@ export default {
       }
     },
 
-    handleOk () {
+    async onClickBatchOffShelf () {
+      if (this.selectedProductKeys.length === 0) {
+        this.$message.warn('请选择商品')
+        return
+      }
+
+      try {
+        await ProductService.putProductsOffShelf(this.selectedProducts)
+        this.$message.success('下架成功!')
+        this.$refs.table.refresh()
+      } catch (e) {
+        this.$message.error('下架失败!')
+      }
+    },
+
+    resetSearchForm () {
+      this.queryParam = this.defaultQueryParam()
+    },
+
+    defaultQueryParam () {
+      const param = {
+        'category_id': 0
+      }
+
+      return param
+    },
+
+    async handleSearch () {
       this.$refs.table.refresh()
     },
-    
-    toggleAdvanced () {
-      this.advanced = !this.advanced
-    },
-    
-    resetSearchForm () {
-      this.queryParam = {
-        date: moment(new Date())
-      }
-    }
   }
 }
 </script>
@@ -294,7 +333,7 @@ export default {
 <style lang="less" scoped>
   .table-page-search-wrapper {
     background: #f8f8f8 !important;
-    padding: 20px 10px 1px;
+    padding: 20px 15px 1px 15px;
   }
   .table-operator {
     margin-bottom: 5px;
@@ -361,5 +400,9 @@ export default {
     .x-i-hoverDisplay {
       visibility: visible;
     }
+  }
+
+  .table-page-search-wrapper .ant-form-inline .ant-form-item > .ant-form-item-label {
+    width: 100px;
   }
 </style>

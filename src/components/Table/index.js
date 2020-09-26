@@ -117,6 +117,7 @@ export default {
       bool && (this.paginationLocal = Object.assign({ ...this.paginationLocal }, {
         current: 1, pageSize: this.pageSize
       }))
+      this.clearSelected()
       this.loadData()
     },
     /**

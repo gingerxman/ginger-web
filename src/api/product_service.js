@@ -55,12 +55,17 @@ class ProductService {
 
     const pagination = parameter.pagination
     const filters = { ...parameter.filters }
+    // 去除不需要的filter
+    if (filters.hasOwnProperty('category_id') && filters['category_id'] === 0) {
+      delete filters.category_id
+    }
+
     const resp = await Resource.get({
       resource: resource,
       data: {
         page: pagination.current,
         count_per_page: pagination.pageSize,
-        ...filters
+        filters: JSON.stringify(filters)
       }
     })
 
