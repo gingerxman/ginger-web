@@ -11,6 +11,38 @@ export const asyncRouterMap = [
     meta: { title: '首页' },
     redirect: '/dashboard/workplace',
     children: [
+      // shop
+      {
+        path: '/shop',
+        redirect: '/shop/pages',
+        component: PageView,
+        meta: { title: '店铺', icon: 'shop', permission: [ 'product' ] },
+        children: [
+          {
+            path: '/shop/pages',
+            name: 'PageManage',
+            component: RouteView,
+            redirect: '/shop/pages',
+            hideChildrenInMenu: true,
+            meta: { title: '微页面', permission: [ 'product' ] },
+            children: [
+              {
+                path: '/shop/page',
+                name: 'Page',
+                component: () => import('@/views/product/product/Product'),
+                meta: { title: '编辑微页面', keepAlive: false, permission: [ 'product' ] }
+              },
+              {
+                path: '/shop/pages',
+                name: 'PageLists',
+                component: () => import('@/views/product/products/ProductList'),
+                meta: { title: '微页面', keepAlive: false, permission: [ 'product' ] }
+              }
+            ]
+          }
+        ]
+      },
+
       // product
       {
         path: '/product',
