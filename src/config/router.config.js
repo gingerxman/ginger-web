@@ -158,14 +158,30 @@ export const asyncRouterMap = [
             path: '/crm/benefit',
             name: 'UserBenefit',
             component: RouteView,
-            redirect: '/crm/points',
+            redirect: '/crm/point_rules',
             meta: { title: '权益管理', permission: [ 'user' ] },
             children: [
               {
-                path: '/crm/points',
-                name: 'UserPoints',
-                component: () => import('@/views/other/UserList'),
-                meta: { title: '积分管理', permission: [ 'user' ] }
+                path: '/crm/point_rules',
+                name: 'PointManage',
+                component: RouteView,
+                redirect: '/crm/point_rules',
+                hideChildrenInMenu: true,
+                meta: { title: '积分权益', permission: [ 'user' ] },
+                children: [
+                  {
+                    path: '/crm/point_rules',
+                    name: 'PointRules',
+                    component: () => import('@/views/crm/point_rules/PointRules'),
+                    meta: { title: '积分规则', keepAlive: false, permission: [ 'user' ] }
+                  },
+                  {
+                    path: '/crm/point_rule',
+                    name: 'PointRule',
+                    component: () => import('@/views/crm/point_rules/PointRule'),
+                    meta: { title: '编辑积分规则', keepAlive: false, permission: [ 'user' ] }
+                  }
+                ]
               }
             ]
           }

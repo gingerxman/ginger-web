@@ -7,6 +7,7 @@ import ProductCategoryService from './product_category_service'
 import OrderService from './order_service'
 import CustomerService from './customer_service'
 import SystemService from './system_service'
+import PointService from './point_service'
 
 export {
   AccountService,
@@ -17,5 +18,6 @@ export {
   ProductCategoryService,
   OrderService,
   CustomerService,
+  PointService,
   SystemService
 }
