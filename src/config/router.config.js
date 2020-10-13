@@ -109,6 +109,22 @@ export const asyncRouterMap = [
         ]
       },
 
+      // promotion
+      {
+        path: '/promotion',
+        redirect: '/promotion/point_mall',
+        component: RouteView,
+        meta: { title: '营销', icon: 'appstore', permission: [ 'order' ] },
+        children: [
+          {
+            path: '/promotion/point_mall',
+            name: 'PointMall',
+            component: () => import('@/views/promotion/point_mall/Products'),
+            meta: { title: '积分商城', keepAlive: false, permission: [ 'order' ] }
+          }
+        ]
+      },
+
       // crm
       {
         path: '/crm',
