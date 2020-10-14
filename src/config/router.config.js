@@ -29,13 +29,14 @@ export const asyncRouterMap = [
               {
                 path: '/shop/page',
                 name: 'Page',
-                component: () => import('@/views/product/product/Product'),
+                redirect: '/page/editor',
+                component: RouteView,
                 meta: { title: '编辑微页面', keepAlive: false, permission: [ 'product' ] }
               },
               {
                 path: '/shop/pages',
-                name: 'PageLists',
-                component: () => import('@/views/product/products/ProductList'),
+                name: 'Pages',
+                component: () => import('@/views/shop/pages/Pages'),
                 meta: { title: '微页面', keepAlive: false, permission: [ 'product' ] }
               }
             ]
@@ -574,6 +575,20 @@ export const constantRouterMap = [
         component: () => import('@/views/Home')
       }
     ]
+  },
+
+  {
+    path: '/page/editor',
+    name: 'PageEditor',
+    redirect: '/page/editor',
+    component: BlankLayout,
+    hidden: true,
+    children: [{
+      path: '/page/editor',
+      name: 'PageEditor',
+      component: () => import('@/views/shop/page/PageEditor'),
+      meta: { title: '编辑微页面', keepAlive: false, permission: [ 'product' ] }
+    }]
   },
 
   {
