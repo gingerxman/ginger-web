@@ -1,8 +1,12 @@
 <template>
   <div class="x-shop-pageEditorPage">
     <top-bar />
-    <side-bar />
-    <phone />
+    <side-bar @create-component="handleCreateComponent"/>
+    <phone 
+      :coms="components"
+      @select-component="handleSelectComponent"
+    />
+    <property-editor :component="activeComponent" />
   </div>
 </template>
 
@@ -11,6 +15,8 @@ import { SystemService } from '@/api/service'
 import Phone from './modules/Phone'
 import TopBar from './modules/TopBar'
 import SideBar from './modules/SideBar'
+import PropertyEditor from './modules/PropertyEditor'
+import { ComponentFactory } from '@/components/PageEditor'
 import Vue from 'vue'
 
 export default {
@@ -19,7 +25,8 @@ export default {
   components: {
     TopBar,
     SideBar,
-    Phone
+    Phone,
+    PropertyEditor
   },
 
   computed: {
@@ -34,14 +41,44 @@ export default {
     // this.loadCreateOptions()
   },
 
+  computed: {
+    pageComponents () {
+      return this.components.filter(component => component)
+    }
+  },
+
   data () {
+    setTimeout(() => {
+      this.handleCreateComponent('core.notice')
+      this.handleCreateComponent('core.page')
+    }, 500)
     return {
-      
+      components: [],
+      activeComponent: null
     }
   },
 
   methods: {
     onSelectCategory (value) {
+    },
+
+    handleCreateComponent (type) {
+      let component = ComponentFactory.create(type)
+      this.components.push(component)
+      this.handleSelectComponent(component)
+    },
+
+    handleSelectComponent (component) {
+      this.activeComponent = component
+      this.components = this.components.map(aComponent => {
+        if (component.cid === aComponent.cid) {
+          aComponent.isActive = true
+        } else {
+          aComponent.isActive = false
+        }
+
+        return aComponent
+      })
     },
 
     async submit (page) {

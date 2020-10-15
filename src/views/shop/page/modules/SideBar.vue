@@ -20,7 +20,7 @@
               @click.stop="handleClickComponent(component)"
             >
               <i class="com-item__icon" :style='{backgroundImage:"url("+component.indicator.img+")"}'></i>
-              <div class="com-item__name">商品</div>
+              <div class="com-item__name">{{ component.componentName }}</div>
             </div>
           </div>
         </a-collapse-panel>
@@ -39,7 +39,8 @@ import { ComponentFactory } from '@/components/PageEditor'
 const COMPONENT_TYPES = [
   'core.title',
   'core.products',
-  'core.image_ad'
+  'core.image_ad',
+  'core.notice',
 ]
 
 export default {
@@ -61,7 +62,7 @@ export default {
 
   methods: {
     handleClickComponent (component) {
-      alert('click ' + component.type)
+      this.$emit('create-component', component.type)
     }
   }
 }

@@ -19,4 +19,10 @@ var Component = function() {
 	 */
 }
 
-export default Component
+class Model {
+}
+
+export {
+  Component,
+  Model
+}

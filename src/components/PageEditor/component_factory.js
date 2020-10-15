@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import Component from './component'
+import { Component, Model } from './component'
 
 var extend = function(protoProps, staticProps) {
   var parent = this;
@@ -46,52 +46,125 @@ var CID = 1; //全局cid计数器
 
 var ComponentFactory = {
   assignCid: function(component, obj) {
-		if (obj && obj.cid) {
-			console.debug('[component_factory]: restore component: ', obj.cid);
-			component.cid = obj.cid;
-			if (CID <= obj.cid) {
-				CID = obj.cid + 1;
-			}
-			component.isNewCreated = false;
-		} else {
-			component.cid = CID++;
-			console.debug('[component_factory]: create new component: ', component.cid);
-			component.isNewCreated = true;
-		}
+    if (obj && obj.cid) {
+      console.debug('[component_factory]: restore component: ', obj.cid);
+      component.cid = obj.cid;
+      if (CID <= obj.cid) {
+        CID = obj.cid + 1;
+      }
+      component.isNewCreated = false;
+    } else {
+      component.cid = CID++;
+      console.debug('[component_factory]: create new component: ', component.cid);
+      component.isNewCreated = true;
+    }
 
-		CID2COMPONENT[component.cid] = component;
+    CID2COMPONENT[component.cid] = component;
+  },
+
+  /**
+	 * 扩展component对象的properties，加入默认项
+	 */
+	extendProperties: function(component, obj) {
+		component.properties = _.cloneDeep(component.properties);
+		if (component.properties && component.properties.length > 0) {
+			var firstGroup = component.properties[0];
+			var fields = firstGroup['fields'];
+
+			fields.splice(0, 0, {
+				name: 'index',
+				type: 'hidden',
+				displayName: '',
+				isUserProperty: false,
+				default: '-1',
+			}, {
+				name: 'zindex',
+				isUserProperty: false,
+				type: 'hidden',
+				displayName: '',
+				default: 1001,
+			}, {
+				name: 'auto_select',
+				isUserProperty: false,
+				type: 'hidden',
+				displayName: '',
+				default: false,
+			});
+		}
 	},
 
-  create: function(type, data={}) {
+  /**
+   * 创建model
+   */
+  createModel: function(component, obj) {
+    //搜集property
+    var defaults = {};
+    var propertyGroups = component.properties;
+    _.each(propertyGroups, function(group) {
+      _.each(group.fields, function(field) {
+        component.name2field[field.name] = field;
+        var defaultValue = '';
+        if (field.hasOwnProperty('default')) {
+          defaultValue = field["default"];
+        }
+        defaults[field.name] = defaultValue;
+      })
+    });
+
+    //创建新的Model对象
+    defaults['index'] = component.cid;
+    var model = {...defaults}
+    
+    //合并obj中输入的model值
+    if (obj && obj.model) {
+      model = {...model, ...obj.model}
+
+      //清除dynamic fields的内容
+      // var dynamicFields = _.filter(component.name2field, function(field, name) {
+      //   return field.type === 'dynamic_generated_control';
+      // });
+      // _.each(dynamicFields, function(dynamicField) {
+      //   model.set(dynamicField.name, [], {
+      //     silent: true
+      //   });
+      // }, this);
+    }
+
+    return model;
+  },
+
+  create: function(type, obj={}) {
     var ComponentClass = TYPE2COMPONENT[type];
     if (!ComponentClass) {
       console.error("class not exists: " + type)
     }
 
     //创建ComponentClass对象
-		var component = new ComponentClass();
-		component.type = ComponentClass.type;
-		component.klass = ComponentClass;
+    var component = new ComponentClass();
+    component.type = ComponentClass.type;
+    component.name = ComponentClass.componentName;
+    component.klass = ComponentClass;
+    component.isActive = false
 
-		this.assignCid(component, data);
-		// this.extendProperties(component, obj);
-    // component.model = this.createModel(component, obj);
-    component.data = data
+    this.assignCid(component, obj);
+    this.extendProperties(component, obj);
+    component.model = this.createModel(component, obj);
+    // component.data = data
 
-		//初始化property change handler
-		// if (!this.propertyChangeHandlers) {
-		// 	this.propertyChangeHandlers = {};
-		// }
+    //初始化property change handler
+    // if (!this.propertyChangeHandlers) {
+    // 	this.propertyChangeHandlers = {};
+    // }
 
-		//初始化dynamicComponentTyeps
-		// if (!this.dynamicComponentTypes) {
-		// 	this.dynamicComponentTypes = [];
-		// }
+    //初始化dynamicComponentTyeps
+    // if (!this.dynamicComponentTypes) {
+    // 	this.dynamicComponentTypes = [];
+    // }
 
-		// this.createSubComponents(component, obj);
-		// this.bindModelChangeHandler(component, obj);
+    // this.createSubComponents(component, obj);
+    // this.bindModelChangeHandler(component, obj);
 
-		return component;
+    return component;
   },
 
   getComponentClassByType (type) {
@@ -105,6 +178,7 @@ var ComponentFactory = {
     componentClass.type = componentType;
     componentClass.fullName = componentType;
     componentClass.selectable = protoProps.selectable;
+    componentClass.componentName = protoProps.name;
 
     COMPONENTS.push(componentClass);
     TYPE2COMPONENT[componentType] = componentClass;

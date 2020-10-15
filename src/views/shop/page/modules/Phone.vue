@@ -1,34 +1,31 @@
 <template>
   <div class="pageEditor-phone preview-wrap">
     <div class="preview">
-      <div class="preview-head">
+      <div class="preview-head" @click.stop="handleClickPage">
         <div class="preview-header-title">店铺主页</div>
       </div>
 
       <div class="preview-body">
-        <div class="com-item com-item-deletable">
-          <a href="javascript:void(0)">
-            百度1
-          </a>
+        <div
+          v-for="component in selectableComponents"
+          :key="component.cid"
+          :class="['com-item', 'com-item-deletable', component.isActive ? 'com-item-active' : '']"
+          @click.stop="handleClickComponent(component)"
+        >
+          <com-title :component="component" v-if="component.type === 'core.title'" />
+          <com-products :component="component" v-if="component.type === 'core.products'" />
+          <com-notice :component="component" v-if="component.type === 'core.notice'" />
+
           <div class="com-widget">
             <i class="com-widget-del"></i>
             <div class="com-widget-name">
               <span class="com-widget-name__arrow-out"></span>
-              标题文本
+              {{ component.name }}
             </div>
           </div>
-        </div>
 
-        <div class="com-item com-item-deletable">
-          <a href="javascript:void(0)">
-            百度2
-          </a>
-          <div class="com-widget">
-            <i class="com-widget-del"></i>
-            <div class="com-widget-name">
-              <span class="com-widget-name__arrow-out"></span>
-              标题文本
-            </div>
+          <div class="com-dev" @click.stop="handleClickDev(component)">
+            <a-tag color="green">{{ component.cid }}</a-tag>
           </div>
         </div>
       </div>
@@ -38,22 +35,53 @@
 
 <script>
 import { ComponentFactory } from '@/components/PageEditor'
+import ComTitle from './components/Title'
+import ComProducts from './components/Products'
+import ComNotice from './components/Notice'
 
 export default {
   name: 'Phone',
+
+  components: {
+    ComTitle,
+    ComProducts,
+    ComNotice
+  },
+  
+  props: {
+    coms: {
+      type: Array,
+      default: () => {
+        return []
+      }
+    }
+  },
+
+  computed: {
+    selectableComponents () {
+      return this.coms.filter(component => component.selectable)
+    }
+  },
+
   data () {
-    let title1 = ComponentFactory.create('core.title')
-    let title2 = ComponentFactory.create('core.title')
-    console.log(title1)
-    console.log(title2)
+    console.log(JSON.stringify(this.coms))
     return {
     }
   },
+
   methods: {
-    handleCancel () {
-      // clear form & currentStep
-      this.visible = false
-      this.currentStep = 0
+    handleClickComponent (component) {
+      this.$emit('select-component', component)
+    },
+
+    handleClickPage () {
+      let pageComponent = this.coms.find(component => component.type === 'core.page')
+      this.$emit('select-component', pageComponent)
+    },
+
+    handleClickDev (component) {
+      console.log(JSON.stringify(component))
+      console.log(component)
     }
   }
 }
@@ -63,8 +91,9 @@ export default {
 .pageEditor-phone {
   position: absolute;
   top: 56px;
-  left: 262px;
-  right: 36px;
+  left: 240px;
+  width: 480px;
+  // right: 36px;
   bottom: 0;
   overflow-y: auto;
   overflow-x: hidden;
@@ -164,6 +193,13 @@ export default {
             }
           }
         }
+
+        .com-dev {
+          position: absolute;
+          top: 0;
+          left: -30px;
+          width: 34px;
+        }
       }
       .com-item:hover:before {
         content: "";
@@ -177,7 +213,7 @@ export default {
         z-index: 99;
         cursor: move;
       }
-      .com-item-active:before {
+      .com-item-active:before, .com-item-active:hover:before {
         content: "";
         position: absolute;
         width: 379px;

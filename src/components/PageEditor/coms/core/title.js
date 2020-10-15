@@ -6,6 +6,7 @@ var Component = ComponentFactory.define({
 	type: 'core.title',
 	selectable: true,
 	propertyViewTitle: '标题',
+	name: '标题文本',
 
 	properties: [
 			{
@@ -23,7 +24,7 @@ var Component = ComponentFactory.define({
 							validateIgnoreDefaultValue: true,
 							isUserProperty: true,
 							placeholder:'编辑[标题]',
-							default: '编辑[标题]'
+							default: ''
 					},{
 							name: 'subtitle',
 							type: 'text',

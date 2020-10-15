@@ -6,6 +6,7 @@ var Component = ComponentFactory.define({
 	type: 'core.image_ad',
 	selectable: true,
 	propertyViewTitle: '图片广告',
+	name: '图片广告',
 
 	properties: [
 			{

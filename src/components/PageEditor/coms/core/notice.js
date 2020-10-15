@@ -3,47 +3,28 @@
 import { ComponentFactory } from '@/components/PageEditor'
 
 var Component = ComponentFactory.define({
-	type: 'core.products',
+	type: 'core.notice',
 	selectable: true,
-	propertyViewTitle: '商品',
-	name: '商品',
+	propertyViewTitle: '公告',
+	name: '公告',
 
 	properties: [
 			{
 					group: '',
-					groupClass:'xui-propertyView-title',
+					groupClass:'propertyEditor-notice',
 					groupHelp:{
 							className:''
 					},
 					fields: [{
-							name: 'title',
+							name: 'content',
 							type: 'text',
-							displayName: '标题名',
+							displayName: '公告',
 							maxLength: 30,
 							validate: 'data-validate="require-notempty::标题名不能为空"',
 							validateIgnoreDefaultValue: true,
 							isUserProperty: true,
-							placeholder:'编辑[标题]',
-							default: '编辑[标题]'
-					},{
-							name: 'subtitle',
-							type: 'text',
-							displayName: '副标题',
-							maxLength: 30,
-							isUserProperty: true,
+							placeholder:'请填写内容，如果过长，将会在手机上滚动显示',
 							default: ''
-					},{
-							name: 'time',
-							type: 'time',
-							isUserProperty: true,
-							default: ''
-					},{
-							name: 'align',
-							type: 'radio',
-							displayName: '显示',
-							isUserProperty: true,
-							source: [{name:'居左', value:'left'},{name:'居中', value:'center'},{name:'居右', value:'right'}],
-							default: 'left'
 					},{
 							name: 'background_color',
 							type: 'color_picker',
@@ -75,8 +56,8 @@ var Component = ComponentFactory.define({
 	}
 }, {
 	indicator: {
-			name: '商品',
-			img: 'https://img.yzcdn.cn/public_files/2019/02/12/a6806f6ff8c220aa7a57eb89d253e126.png'
+			name: '公告',
+			img: 'https://img.yzcdn.cn/public_files/2019/02/12/c52262f634e5fbba92f69abb8d7134ee.png'
 	}
 });
 
