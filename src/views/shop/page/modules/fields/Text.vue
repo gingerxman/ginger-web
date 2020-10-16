@@ -1,5 +1,5 @@
 <template>
-  <div class="field-notice" v-if="component && field">
+  <div class="field-text" v-if="component && field">
     <a-form-item
       :label="field.displayName"
       :required="field | isRequiredField" 

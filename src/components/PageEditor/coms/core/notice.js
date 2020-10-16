@@ -30,8 +30,14 @@ var Component = ComponentFactory.define({
 							type: 'color_picker',
 							displayName: '背景颜色',
 							isUserProperty: true,
-							default: ''
-					}]
+							default: '#FFF8E9'
+					},{
+						name: 'color',
+						type: 'color_picker',
+						displayName: '文字颜色',
+						isUserProperty: true,
+						default: '#646566'
+				}]
 			}
 	],
 

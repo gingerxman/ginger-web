@@ -49,8 +49,8 @@ export default {
 
   data () {
     setTimeout(() => {
-      this.handleCreateComponent('core.notice')
       this.handleCreateComponent('core.page')
+      this.handleCreateComponent('core.notice')
     }, 500)
     return {
       components: [],
